@@ -13,21 +13,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Path to your CSV file
-CSV_FILE = "gold_prices.csv"
-
 @app.get("/")
 def home():
     return {"message": "Gold Data API is running"}
 
 @app.get("/gold-data")
 def get_gold_data():
-    """
-    Returns the CSV data as JSON so Copilot Studio can consume it.
-    """
-    try:
-        df = pd.read_csv(CSV_FILE)
-        return JSONResponse(content=df.to_dict(orient="records"))
-    except Exception as e:
-        return {"error": str(e)}
+    df = pd.read_csv("njl_sales_report_sample_1000.csv")
+    return df.to_dict(orient="records")
