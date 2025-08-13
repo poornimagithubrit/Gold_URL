@@ -1,23 +1,39 @@
 from fastapi import FastAPI
-import pandas as pd
 from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+import os
 
-app = FastAPI(title="Gold Data API")
+# Load CSV once at startup
+CSV_FILE = "gold_data.csv"
+if not os.path.exists(CSV_FILE):
+    raise FileNotFoundError(f"{CSV_FILE} not found in project root")
 
-# Enable CORS for public access
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow any origin
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+df = pd.read_csv(CSV_FILE)
+
+app = FastAPI(title="Gold Data API", description="Public JSON API for gold sales", version="1.0")
+
 @app.get("/")
-def home():
-    return {"message": "Gold Data API is running"}
+def root():
+    return {"message": "Gold Data API - use /data to get the CSV contents as JSON."}
 
-@app.get("/gold-data")
-def get_gold_data():
-    df = pd.read_csv("njl_sales_report_sample_1000.csv")
-    return df.to_dict(orient="records")
+@app.get("/data")
+def get_data():
+    return JSONResponse(content=df.to_dict(orient="records"))
+
+@app.get("/filter")
+def filter_data(city: str = None, category: str = None):
+    filtered_df = df.copy()
+    if city:
+        filtered_df = filtered_df[filtered_df['City'].str.lower() == city.lower()]
+    if category:
+        filtered_df = filtered_df[filtered_df['Master Category'].str.lower() == category.lower()]
+    return JSONResponse(content=filtered_df.to_dict(orient="records"))
+
+@app.get("/summary")
+def summary():
+    total_sales = df["Net Sales Value [INR]"].sum()
+    avg_price = df["Cost Price [INR]"].mean()
+    return {
+        "total_sales_inr": total_sales,
+        "average_cost_price_inr": avg_price
+    }
