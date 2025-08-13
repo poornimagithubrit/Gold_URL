@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 # Load CSV once at startup
-CSV_FILE = "gold_data.csv"
+CSV_FILE = "njl_sales_report_sample_1000.csv"
 if not os.path.exists(CSV_FILE):
     raise FileNotFoundError(f"{CSV_FILE} not found in project root")
 
@@ -37,3 +37,4 @@ def summary():
         "total_sales_inr": total_sales,
         "average_cost_price_inr": avg_price
     }
+
